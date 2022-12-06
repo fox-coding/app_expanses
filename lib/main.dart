@@ -1,5 +1,8 @@
-import 'package:app_expanses/widgets/user_transactions.dart';
+import 'package:app_expanses/widgets/new_transactions.dart';
+import 'package:app_expanses/widgets/transaction_list.dart';
 import 'package:flutter/material.dart';
+import '../models/transaction.dart';
+import 'widgets/chart.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,10 +15,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Expanses App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      title: 'my expanses',
+      theme: ThemeData(primarySwatch: Colors.red, fontFamily: 'Quicksand'),
       home: MyHomePage(),
     );
   }
@@ -27,11 +28,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  void startAddNewTransaction(BuildContext context) {
+  final List<Transaction> _userTransactions = [
+    // Transaction(
+    //     id: 't1', title: 'Neue Jacke', amount: 89.99, date: DateTime.now()),
+    // Transaction(
+    //     id: 't2', title: 'Neue Mütze', amount: 5.89, date: DateTime.now()),
+  ];
+
+  List<Transaction> get _recentTransactions {
+    return _userTransactions.where((tx) {
+      return tx.date.isAfter(DateTime.now().subtract(Duration(days: 7)));
+    }).toList();
+  }
+
+  void _addNewTransaction(String txTitle, double txAmount) {
+    final newTx = Transaction(
+        title: txTitle,
+        amount: txAmount,
+        date: DateTime.now(),
+        id: DateTime.now().toString());
+
+    setState(() {
+      _userTransactions.add(newTx);
+    });
+  }
+
+  void _startAddNewTransaction(BuildContext context) {
     showModalBottomSheet(
         context: context,
         builder: (_) {
-          return Container();
+          return NewTransaction(_addNewTransaction);
         });
   }
 
@@ -40,26 +66,24 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Expanses'),
-        actions: <Widget>[IconButton(onPressed: () {}, icon: Icon(Icons.add))],
+        actions: <Widget>[
+          IconButton(
+              onPressed: () => _startAddNewTransaction(context),
+              icon: Icon(Icons.add))
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           //mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Container(
-              width: double.infinity,
-              child: Card(
-                color: Colors.yellow,
-                child: Text('CHART'),
-              ),
-            ),
-            UserTransactions()
+            Chart(_recentTransactions),
+            TransactionList(_userTransactions)
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () => _startAddNewTransaction(context),
       ),
     );
   }
